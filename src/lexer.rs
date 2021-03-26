@@ -42,10 +42,10 @@ pub(crate) fn lex (code: &str) -> Vec<Token> {
             }
 
             match char {
-                '+' => tokens.push(Token::Add),
-                '-' => tokens.push(Token::Subtract),
-                '/' => tokens.push(Token::Divide),
-                '*' => tokens.push(Token::Multiply),
+                '+' => tokens.push(Token::Plus),
+                '-' => tokens.push(Token::Minus),
+                '/' => tokens.push(Token::Slash),
+                '*' => tokens.push(Token::Asterisk),
                 '=' => tokens.push(Token::Equals),
 
                 '(' => tokens.push(Token::LeftParenthesis),
@@ -74,7 +74,7 @@ mod tests {
 
     #[test]
     fn lex_two_plus_two() {
-        assert_eq!(lex("2 + 2"), vec![Token::Number(2), Token::Add, Token::Number(2)]);
+        assert_eq!(lex("2 + 2"), vec![Token::Number(2), Token::Plus, Token::Number(2)]);
     }
 
     #[test]
@@ -85,13 +85,13 @@ mod tests {
             ),
             vec![
                 Token::Number(2147483647),
-                Token::Add,
+                Token::Plus,
                 Token::Number(2147483647),
-                Token::Add,
+                Token::Plus,
                 Token::Number(2147483647),
-                Token::Add,
+                Token::Plus,
                 Token::Number(2147483647),
-                Token::Add,
+                Token::Plus,
                 Token::Number(2147483647),
             ]
         );
