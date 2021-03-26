@@ -1,20 +1,20 @@
-use crate::util::{ Token, Addition, Number, Literal, OP};
+use crate::util::{ Token, Literal, OP};
 use prev_iter::PrevPeekable;
 use crate::previous_peekable;
 
 pub(crate) fn parse (toks: Vec<Token>) -> Vec<OP> {
-    let mut OPCode = vec![];
+    let mut opcode = vec![];
 
     let mut tokens = previous_peekable!(toks.iter().enumerate().peekable());
 
-    while let Some((i, token)) = tokens.next() {
+    while let Some((_i, token)) = tokens.next() {
         match token {
-            Token::Number(val) => (),
+            Token::Number(_val) => (),
             Token::Plus => {
                 if let Token::Number(a) = tokens.prev_peek().unwrap().1 {
                     if let Token::Number(b) =  tokens.peek().unwrap().1 {
 
-                        OPCode.push(OP::Addition {
+                        opcode.push(OP::Addition {
                             a: Literal::Number(*a),
                             b: Literal::Number(*b),
                         });
@@ -30,7 +30,7 @@ pub(crate) fn parse (toks: Vec<Token>) -> Vec<OP> {
     }
 
 
-    return OPCode;
+    return opcode;
 }
 
 #[cfg(test)]

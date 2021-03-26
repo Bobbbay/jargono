@@ -11,15 +11,6 @@ macro_rules! previous_peekable {
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct Number(pub i32);
-impl Number {
-    pub fn new(s: &str) -> Self {
-        Self(s.parse().unwrap())
-    }
-
-    pub fn value(&self) -> i32 {
-        self.0
-    }
-}
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Token {
@@ -46,12 +37,6 @@ pub enum Token {
 pub enum Literal {
     Number(i32),      // type: i32
     String(String),   // type: String
-}
-
-impl Literal {
-    pub fn Number_from_token(token: &Token) -> Literal {
-        Literal::Number(1)
-    }
 }
 
 #[derive(PartialEq, Debug, Clone)]
