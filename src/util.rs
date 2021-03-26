@@ -2,6 +2,13 @@
 Util includes utilities and declarations needed in other files.
  */
 
+#[macro_export]
+macro_rules! previous_peekable {
+    ( $a:expr ) => {
+        PrevPeekable::new($a);
+    };
+}
+
 #[derive(PartialEq, Debug, Clone)]
 pub struct Number(pub i32);
 impl Number {
