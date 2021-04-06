@@ -9,46 +9,17 @@ macro_rules! previous_peekable {
     };
 }
 
-#[derive(PartialEq, Debug, Clone)]
-pub struct Number(pub i32);
+#[derive(Debug, PartialEq)]
+pub enum Expr {
+    Number     (i64),
+    Str        (String),
+    Boolean    (bool),
 
-#[derive(PartialEq, Debug, Clone)]
-pub enum Token {
-    Plus,             // +
-    Minus,            // -
-    Asterisk,         // *
-    Slash,            // /
-    Equals,           // =
-
-    Number(i32),      // type: i32
-
-    Declaration,      // let
-    Delimiter,        // ;
-
-    LeftParenthesis,  // (
-    RightParenthesis, // )
-    LeftCurlyBrace,   // {
-    RightCurlyBrace,  // }
-
-    Identifier,       // everything else
-}
-
-#[derive(PartialEq, Debug, Clone)]
-pub enum Literal {
-    Number(i32),      // type: i32
-    String(String),   // type: String
-}
-
-#[derive(PartialEq, Debug, Clone)]
-pub struct Addition {
-    pub left: Literal,
-    pub right: Literal,
-}
-
-#[derive(PartialEq, Debug, Clone)]
-pub enum OP {
-    Addition {
-        a: Literal,
-        b: Literal,
-    },
+    Reference  (String),
+    Assign     (String,    Box<Expr>),
+    Add        (Box<Expr>, Box<Expr>),
+    Subtract   (Box<Expr>, Box<Expr>),
+    Multiply   (Box<Expr>, Box<Expr>),
+    Divide     (Box<Expr>, Box<Expr>),
+    If         (Box<Expr>, Vec<Expr>, Vec<Expr>),
 }

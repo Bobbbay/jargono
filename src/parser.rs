@@ -1,36 +1,69 @@
-use crate::util::{ Token, Literal, OP};
-use prev_iter::PrevPeekable;
-use crate::previous_peekable;
+extern crate nom;
+use nom::{
+    bytes::{
+        complete::{tag, take_until},
+        streaming::is_not,
+    },
+    combinator::map_res,
+    sequence::{delimited, preceded},
+    character::complete::digit1,
+    IResult,
+};
 
-pub(crate) fn parse (toks: Vec<Token>) -> Vec<OP> {
-    let mut opcode = vec![];
+/// `strip_comment` will quite literally strip single-lined comments from the input, and return
+/// the non-commented body as well as the comment body. In Jargono, these comments are defined as
+/// `//`.
+///
+/// # Example
+///
+/// ```ignore
+/// strip_comments("// commentification\nlet a = 0;");
+/// ```
+///
+/// See also: [`strip_multiline_comment`]
+pub(self) fn strip_comment(input: &str) -> IResult<&str, &str, nom::error::Error<&str>> {
+    preceded(tag("//"), take_until("\n"))(input)
+}
 
-    let mut tokens = previous_peekable!(toks.iter().enumerate().peekable());
+/// `strip_multiline_comment` will quite literally strip multi-lined comments from the input, and
+/// return the non-commented body as well as the comment body. In Jargono, multi-line comments are
+/// specified as `/* */`.
+///
+/// # Example
+///
+/// ```ignore
+/// strip_comments("/* commentification */");
+/// ```
+///
+/// See also: [`strip_comment`]
+pub(self) fn strip_multiline_comment(input: &str) -> IResult<&str, &str, nom::error::Error<&str>> {
+    delimited(tag("/*"), is_not("*/"), tag("*/"))(input)
+}
 
-    while let Some((_i, token)) = tokens.next() {
-        match token {
-            Token::Number(_val) => (),
-            Token::Plus => {
-                if let Token::Number(a) = tokens.prev_peek().unwrap().1 {
-                    if let Token::Number(b) =  tokens.peek().unwrap().1 {
+/// `number` will take an input string and try to turn it into a number.
+///
+/// See also: [`literal`], [`string`], [`boolean`]
+pub(self) fn number(input: &str) -> IResult<&str, i64, nom::error::Error<&str>> {
+    map_res(digit1, |s: &str| s.parse::<i64>())(input)
+}
 
-                        opcode.push(OP::Addition {
-                            a: Literal::Number(*a),
-                            b: Literal::Number(*b),
-                        });
+/// `string` has the goal of consuming the preceding and proceeding `"`s, while simultaneously
+/// returning the value inside.
+///
+/// See also: [`literal`], [`number`], [`boolean`]
+pub(self) fn string(input: &str) -> IResult<&str, &str, nom::error::Error<&str>> {
+    delimited(tag("\""), is_not("\""), tag("\""))(input)
+}
 
-                        continue;
-                    }
-                    continue;
-                };
-                panic!("You can't add non-integer types!");
-            },
-            _ => panic!("Unknown token."),
-        }
+/// `boolean` will take a string as input and figure out whether it contains `true` or false`.
+///
+/// See also: [`literal`], [`string`], [`number`]
+pub(self) fn boolean(input: &str) -> Result<bool, &str> {
+    match input {
+        "true"  => Ok(true),
+        "false" => Ok(false),
+        _       => Err("Unknown boolean."),
     }
-
-
-    return opcode;
 }
 
 #[cfg(test)]
@@ -38,28 +71,47 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_two_plus_two() {
+    fn comment() {
         assert_eq!(
-            parse(vec![Token::Number(2), Token::Plus, Token::Number(2)]),
-            vec![
-                OP::Addition {
-                    a: Literal::Number(2),
-                    b: Literal::Number(2),
-                },
-            ]
+            strip_comment("// commentification \n let a = 0;"),
+            Ok(("\n let a = 0;", " commentification "))
         );
     }
 
     #[test]
-    fn parse_multi_digit_addition() {
+    fn multiline_comment() {
         assert_eq!(
-            parse(vec![Token::Number(100), Token::Plus, Token::Number(5000)]),
-            vec![
-                OP::Addition {
-                    a: Literal::Number(100),
-                    b: Literal::Number(5000),
-                },
-            ]
+            strip_multiline_comment("/* commentification */ let a = 0;"),
+            Ok((" let a = 0;", " commentification "))
         );
+    }
+
+    #[test]
+    fn numbers() {
+        assert_eq!(
+            number("777"),
+            Ok(("", 777))
+        )
+    }
+
+    #[test]
+    fn strings() {
+        assert_eq!(
+            string("\"Hello, world.\""),
+            Ok(("", "Hello, world."))
+        )
+    }
+
+    #[test]
+    fn booleans() {
+        assert_eq!(
+            boolean("true"),
+            Ok(true)
+        );
+
+        assert_eq!(
+            boolean("false"),
+            Ok(false)
+        )
     }
 }
