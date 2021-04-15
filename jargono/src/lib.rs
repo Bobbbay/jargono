@@ -1,6 +1,6 @@
-mod util;
+pub mod codegen;
 pub mod parser;
-mod codegen;
+pub mod util;
 
 #[cfg(test)]
 mod tests {
