@@ -1,1 +1,9 @@
-fn main() -> int { return 0 }
+fn main() -> int {
+  -1 + 5; // This does nothing, because it asks what -1 + 5 is but doesn't do anything with it.
+  let a = 20;
+  return a; /* This returns:
+               true! */
+}
+
+// Here's a new function, that will add 2 + 1.
+fn add () -> int { 1 + 5; return 2 + 1; }

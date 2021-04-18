@@ -1,4 +1,4 @@
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 
 use llvm::prelude::LLVMBuilderRef;
 use llvm::prelude::LLVMContextRef;
@@ -9,11 +9,9 @@ use llvm::LLVMContext;
 use llvm::LLVMModule;
 use llvm::LLVMType;
 
-use crate::util::{BinaryOp, Node, Type, UnaryOp};
 use std::collections::HashMap;
-use std::io::Error;
-use std::os::raw::c_char;
-use std::ptr;
+
+use crate::util::{BinaryOp, Node, Type, UnaryOp};
 
 unsafe fn codegen_expr(
     context: LLVMContextRef,
@@ -37,6 +35,8 @@ unsafe fn codegen_expr(
 
         Node::Ref(value) => Ok(*namespace_items.get(&value).unwrap()),
 
+        Node::FnRef(..) => unimplemented!(),
+
         Node::Assign(name, value) => {
             let new_value = codegen_expr(context, module, builder, *value, namespace_items)?;
             namespace_items.insert(name, new_value);
@@ -45,7 +45,7 @@ unsafe fn codegen_expr(
 
         Node::Function {
             name,
-            arguments,
+            arguments: _,
             return_value,
             children,
         } => {
@@ -71,7 +71,7 @@ unsafe fn codegen_expr(
             llvm::core::LLVMPositionBuilderAtEnd(builder, block);
 
             for expr in children {
-                codegen_expr(context, module, builder, *expr, &mut namespace_items);
+                codegen_expr(context, module, builder, *expr, &mut namespace_items)?;
             }
 
             Ok(llvm::core::LLVMGetNamedFunction(module, function_name))
@@ -117,60 +117,9 @@ pub unsafe fn codegen(input: Vec<Node>) -> (*mut LLVMBuilder, *mut LLVMModule, *
 
     let mut namespace_items = HashMap::new();
     for expr in input {
-        codegen_expr(context, module, builder, expr, &mut namespace_items);
+        codegen_expr(context, module, builder, expr, &mut namespace_items)
+            .expect("Error generating code.");
     }
 
     (builder, module, context)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn return_one() {
-        unsafe {
-            codegen(vec![Node::UnaryExpr {
-                op: UnaryOp::Return,
-                child: Box::new(Node::Int(1)),
-            }]);
-        }
-    }
-
-    #[test]
-    fn largely_chained_ast() {
-        unsafe {
-            codegen(vec![
-                Node::UnaryExpr {
-                    op: UnaryOp::Return,
-                    child: Box::new(Node::BinaryExpr {
-                        op: BinaryOp::Plus,
-                        lhs: Box::new(Node::Int(1)),
-                        rhs: Box::new(Node::BinaryExpr {
-                            op: BinaryOp::Minus,
-                            lhs: Box::new(Node::Int(5)),
-                            rhs: Box::new(Node::Int(1)),
-                        }),
-                    }),
-                },
-                Node::UnaryExpr {
-                    op: UnaryOp::Return,
-                    child: Box::new(Node::Int(1)),
-                },
-            ])
-        };
-    }
-
-    #[test]
-    fn variable_assignement() {
-        unsafe {
-            codegen(vec![
-                Node::Assign("please_return_this".to_string(), Box::new(Node::Int(10))),
-                Node::UnaryExpr {
-                    op: UnaryOp::Return,
-                    child: Box::new(Node::Ref("please_return_this".to_string())),
-                },
-            ])
-        };
-    }
 }

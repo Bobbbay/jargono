@@ -1,5 +1,6 @@
 [workspace]
 members = [
-    "jargono",
-    "cli"
+    "jargonoc", # jargono compiler
+    "cli",      # jargonoc cli driver
+    "dante"     # Package management system
 ]

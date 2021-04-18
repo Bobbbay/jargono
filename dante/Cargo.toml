@@ -1,12 +1,7 @@
 [package]
-name = "jargono"
+name = "dante"
 version = "0.1.0"
 authors = ["Bobbbay <abatterysingle@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-# Parser
-nom = "6.1.2"
-
-# Codegen
-llvm = { package = "llvm-sys", version = "100" }

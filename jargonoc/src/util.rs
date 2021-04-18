@@ -28,6 +28,7 @@ pub enum Node {
     Bool(bool),
 
     Ref(String),
+    FnRef(String, Vec<Argument>),
     Assign(String, Box<Node>),
 
     // name (arguments) -> return_value { children }

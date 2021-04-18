@@ -1,13 +1,12 @@
 [package]
-name = "cli"
+name = "jargono"
 version = "0.1.0"
 authors = ["Bobbbay <abatterysingle@gmail.com>"]
 edition = "2018"
 
 [dependencies]
 # Core
-jargono = { path = "../jargono" }
-llvm = { package = "llvm-sys", version = "100" }
+jargonoc = { path = "../jargonoc" }
 
 # Cli
 clap = "2.33.3"
